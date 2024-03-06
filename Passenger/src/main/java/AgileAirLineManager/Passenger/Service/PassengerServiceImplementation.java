@@ -66,13 +66,11 @@ public class PassengerServiceImplementation implements PassengerService {
 
     @Override
     public boolean deletePassenger(String uniqueIdCard) {
-        Optional<Passenger> passenger = this.passengerRepository.findByUniqueIdCard(uniqueIdCard);
-        if(passenger.isPresent()) {
-            this.passengerRepository.deleteByUniqueIdCard(uniqueIdCard);
-            return true;
-        }
-        else {
-            return false;
-        }
+        Passenger passenger = this.passengerRepository.findByUniqueIdCard(uniqueIdCard)
+                .orElseThrow(()->new ResourceNotFoundException(
+                        "Passenger do not exist with following UniqueCardId : "+uniqueIdCard
+                ));
+        this.passengerRepository.deleteByUniqueIdCard(uniqueIdCard);
+        return true;
     }
 }
