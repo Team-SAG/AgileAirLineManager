@@ -6,7 +6,7 @@ import java.util.Optional;
 
 public interface PassengerService {
 
-    Optional<PassengerDTO> getPassenger(String uniqueIdCard);
+    PassengerDTO getPassenger(String uniqueIdCard);
     PassengerDTO addPassenger(PassengerDTO passengerDTO);
     PassengerDTO updatePassenger(PassengerDTO passengerDTO);
     boolean deletePassenger(String uniqueIdCard);

@@ -1,12 +1,17 @@
 package AgileAirLineManager.Passenger.Service;
 
 import AgileAirLineManager.Passenger.DTO.PassengerDTO;
+import AgileAirLineManager.Passenger.Exceptions.ResourceAlreadyExist;
+import AgileAirLineManager.Passenger.Exceptions.ResourceNotFoundException;
 import AgileAirLineManager.Passenger.Mapper.MapperClass;
 import AgileAirLineManager.Passenger.Model.Passenger;
 import AgileAirLineManager.Passenger.Repository.PassengerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.sql.SQLIntegrityConstraintViolationException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -16,36 +21,47 @@ public class PassengerServiceImplementation implements PassengerService {
     private PassengerRepository passengerRepository;
 
     @Override
-    public Optional<PassengerDTO> getPassenger(String uniqueIdCard) {
-        Optional<Passenger> passenger = this.passengerRepository.findByUniqueIdCard(uniqueIdCard);
-        PassengerDTO passengerDTO = MapperClass.mapPassengerToPassengerDTO(passenger.get());
-        return Optional.of(passengerDTO);
+    public PassengerDTO getPassenger(String uniqueIdCard) {
 
-    }
+        Passenger passenger = this.passengerRepository.findByUniqueIdCard(uniqueIdCard)
+                .orElseThrow(()-> new ResourceNotFoundException("Passenger not found with given id : "+uniqueIdCard));
 
-    @Override
-    public PassengerDTO addPassenger(PassengerDTO passengerDTO) {
-        Passenger passenger = MapperClass.mapPassengerDTOToPassenger(passengerDTO);
-        this.passengerRepository.save(passenger);
+        PassengerDTO passengerDTO = MapperClass.mapPassengerToPassengerDTO(passenger);
         return passengerDTO;
 
     }
 
     @Override
-    public PassengerDTO updatePassenger(PassengerDTO passengerDTO) {
-        Optional<Passenger> passenger = this.passengerRepository.findByUniqueIdCard(passengerDTO.getUniqueIdCard());
-        if(passenger.isPresent()){
-            Passenger passenger1 = passenger.get();
-            passenger1.setUniqueIdCard(passengerDTO.getUniqueIdCard());
-            passenger1.setFirstName(passengerDTO.getFirstName());
-            passenger1.setLastName(passengerDTO.getLastName());
-            passenger1.setAge(passengerDTO.getAge());
-            this.passengerRepository.save(passenger1);
+    public PassengerDTO addPassenger(PassengerDTO passengerDTO) {
+        try {
+            Passenger passenger = MapperClass.mapPassengerDTOToPassenger(passengerDTO);
+            passenger.setCreatedBy("admin");
+            passenger.setCreatedAt(LocalDateTime.now());
+            this.passengerRepository.save(passenger);
             return passengerDTO;
         }
-        else {
-            throw new RuntimeException("Passenger with "+passengerDTO.getUniqueIdCard()+ " not found");
+        catch(Exception exception) {
+            throw new ResourceAlreadyExist("Passeneger already exist with following UniqueCardId : "+passengerDTO.getUniqueIdCard());
         }
+    }
+
+    @Override
+    public PassengerDTO updatePassenger(PassengerDTO passengerDTO) {
+        Passenger passenger = this.passengerRepository.findByUniqueIdCard(passengerDTO.getUniqueIdCard())
+                .orElseThrow(()->new ResourceNotFoundException(
+                        "Passenger do not exist with following UniqueCardId : "+passengerDTO.getUniqueIdCard()
+                ));
+
+
+            passenger.setUniqueIdCard(passengerDTO.getUniqueIdCard());
+            passenger.setFirstName(passengerDTO.getFirstName());
+            passenger.setLastName(passengerDTO.getLastName());
+            passenger.setAge(passengerDTO.getAge());
+            passenger.setUpdatedBy("admin");
+            passenger.setUpdatedAt(LocalDateTime.now());
+            this.passengerRepository.save(passenger);
+
+            return passengerDTO;
     }
 
     @Override

@@ -18,13 +18,8 @@ public class PassengerController {
 
     @GetMapping("/fetch")
     public ResponseEntity<PassengerDTO> getPassenger(@RequestParam String uniqueIdCard){
-        Optional<PassengerDTO> passengerDTO = this.passengerService.getPassenger(uniqueIdCard);
-        if(passengerDTO.isPresent()){
-            return ResponseEntity.status(HttpStatus.FOUND).body(passengerDTO.get());
-        }
-        else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        }
+        PassengerDTO passengerDTO = this.passengerService.getPassenger(uniqueIdCard);
+        return ResponseEntity.status(HttpStatus.FOUND).body(passengerDTO);
     }
     @PostMapping("/add")
     public ResponseEntity<PassengerDTO> addPassenger(@RequestBody PassengerDTO passengerDTO) {
